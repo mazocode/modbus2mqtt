@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "imodbus2mqtt"
+name = "modbus2mqtt"
 version = "2023.10.2"
 description = "Reads Modbus registers over TCP and publishes them to MQTT."
 authors = ["Marcus Zoller <mazocode@users.noreply.github.com>"]
