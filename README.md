@@ -74,8 +74,8 @@ Mount the configuration file to /config.yaml:
 
 ```bash
 docker run --rm \
-<------>--net host \
-<------>--volume ./config.yaml:/config.yaml:ro \
+	--net host \
+	--volume ./config.yaml:/config.yaml:ro \
 	ghcr.io/mazocode/modbus2mqtt
 ```
 
