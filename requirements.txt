@@ -1,0 +1,4 @@
+libscrc
+pyyaml
+pymodbus
+paho-mqtt

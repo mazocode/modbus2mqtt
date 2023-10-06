@@ -1,0 +1,16 @@
+[Unit]
+Description=Turn on/off modbus mqtt gateway
+Requires=network.target
+After=network.target
+
+[Service]
+User=root
+Type=simple
+RemainAfterExit=yes
+KillSignal=SIGINT
+ExecStart=/usr/bin/python3.11 /opt/modbus2mqtt/modbus2mqtt.py -c /opt/modbus2mqtt/config.yaml
+Restart=always
+RestartSec=30s
+
+[Install]
+WantedBy=multi-user.target

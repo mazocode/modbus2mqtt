@@ -1,0 +1,228 @@
+mqtt:
+  host: "<mqtt-host>"
+  port: 1883
+  tls: false
+  username: "<username>"
+  password: "<password>"
+  topic_prefix: "deye"
+
+# Modbus register example for Deye SUN-xK-SG04LP3-EU
+schema:
+- name: deye-sg04lp3-eu
+  readings:
+  - name: "System State"
+    topic: "system/state"
+    register: 500
+    length: 1
+    substract: 0
+    divide: 1
+  - name: "Load Total"
+    topic: "load/now/total/power"
+    register: 653
+    length: 1
+    substract: 0
+    divide: 1
+  - name: "Grid Sold Today"
+    topic: "grid/today/sold"
+    register: 521
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Grid Bought Today"
+    topic: "grid/today/bought"
+    register: 520
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Grid Frequency"
+    topic: "grid/frequency"
+    register: 609
+    length: 1
+    substract: 0
+    decimals: 0
+    divide: 1
+  - name: "Grid Power Total"
+    topic: "grid/now/total/power"
+    register: 625
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+  - name: "Grid L1 Power"
+    topic: "grid/now/l1/power"
+    register: 622
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+  - name: "Grid L1 Volt"
+    topic: "grid/now/l1/volt"
+    register: 598
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Grid L2 Power"
+    topic: "grid/now/l2/power"
+    register: 623
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+  - name: "Grid L2 Volt"
+    topic: "grid/now/l2/volt"
+    register: 599
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Grid L3 Power"
+    topic: "grid/now/l3/power"
+    register: 624
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+  - name: "Grid L3 Volt"
+    topic: "grid/now/l3/volt"
+    register: 600
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Load Power L1"
+    topic: "load/now/l1/power"
+    register: 650
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+  - name: "Load Power L2"
+    topic: "load/now/l2/power"
+    register: 651
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+  - name: "Load Power L3"
+    topic: "load/now/l3/power"
+    register: 652
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+  - name: "Load Voltage L1"
+    topic: "load/now/l1/volt"
+    register: 644
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Load Voltage L2"
+    topic: "load/now/l2/volt"
+    register: 645
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Load Voltage L3"
+    topic: "load/now/l3/volt"
+    register: 646
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "PV Production Today"
+    topic: "pv/today"
+    register: 529
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "PV String 1 Power"
+    topic: "pv/string/1/power"
+    register: 672
+    length: 1
+    substract: 0
+    divide: 1
+  - name: "PV String 2 Power"
+    topic: "pv/string/2/power"
+    register: 673
+    length: 1
+    substract: 0
+    divide: 1
+  - name: "Battery SOC"
+    topic: "battery/soc"
+    register: 588
+    length: 1
+    substract: 0
+    divide: 1
+  - name: "Battery Charged Today"
+    topic: "battery/today/charged"
+    register: 514
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Battery Discharged Today"
+    topic: "battery/today/discharged"
+    register: 515
+    length: 1
+    substract: 0
+    divide: 10
+  - name: "Battery Temperature"
+    topic: "battery/temperature"
+    register: 586
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+  - name: "Battery Voltage"
+    topic: "battery/volt"
+    register: 587
+    length: 1
+    substract: 0
+    decimals: 2
+    divide: 100
+  - name: "Battery Output Power"
+    topic: "battery/output_power"
+    register: 590
+    length: 1
+    signed: 1
+    substract: 0
+    decimals: 0
+    divide: 1
+  - name: "Battery Output Current"
+    topic: "battery/output_current"
+    register: 591
+    length: 1
+    signed: 1
+    substract: 0
+    decimals: 2
+    divide: 100
+
+sources:
+- name: "deye3"
+  host: "192.168.0.30"
+  port: 502
+  schema: deye-sg04lp3-eu
+  topic_prefix: "inverter-3"
+- name: "deye2"
+  host: "192.168.0.20"
+  port: 502
+  schema: deye-sg04lp3-eu
+  topic_prefix: "inverter-2"
+- name: "deye1"
+  host: "192.168.0.10"
+  port: 502
+  schema: deye-sg04lp3-eu
+  topic_prefix: "inverter-1"
