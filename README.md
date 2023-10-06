@@ -82,9 +82,9 @@ modbus2mqtt.py -c /path/to/config.yaml
 
 ### Home Assistant with Deye SUN-xK-SG04LP3-EU inverters
 
-See examples/Deye-SG04LP3-EU
+See examples/Deye-SG04LP3-EU/
 
-You can use home-assistant.yaml as a template for the MQTT integration. This example assumes messages are published to the following topic syntax: pv/<plant-id>/<inverter-id:.
+You can use home-assistant.yaml as a template for the MQTT integration. This example assumes messages are published to the following topic syntax: pv/plant-id/inverter-id:
 
 ```yaml
 mqtt:
@@ -107,11 +107,13 @@ sources:
   # ...
 ```
 
+Result:
+![MQQT Explorer Screenshot](examples/Deye-SG04LP3-EU/deye-modbus2mqtt-example.jpg)
 
 ## Known Issues
 
-- SSL with self signed certificates does not seem to work for now
+- SSL with self signed certificates seems broken
 
 ## Contributing
 
-I am always happy to receive contributions for improvement. If you plan to contribute back to this repo, please fork & open a PR.
+I am always happy to receive contributions. If you plan to contribute back to this repo, please fork & open a PR.
