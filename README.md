@@ -68,6 +68,17 @@ sources:
 
 ## Running
 
+### Docker
+
+Mount the configuration file to /config.yaml:
+
+```bash
+docker run --rm \
+<------>--net host \
+<------>--volume ./config.yaml:/config.yaml:ro \
+	ghcr.io/mazocode/modbus2mqtt
+```
+
 ### Systemd
 
 Adjust the service definition from systemd/ with the path you have clone the repository into and the path to your configuration file.

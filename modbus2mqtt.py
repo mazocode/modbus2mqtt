@@ -1,27 +1,19 @@
 #!/usr/bin/python3.11
 
-import sys, getopt
-import socket
+import sys
+import getopt
 import logging
-#import libscrc
 import signal
 import time
 import yaml
-import ssl
 from typing import List
 from threading import Thread, Lock
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.transaction import (
-    ModbusAsciiFramer,
-    ModbusBinaryFramer,
-    ModbusRtuFramer,
-    ModbusSocketFramer,
-    ModbusTlsFramer,
-)
+# from pymodbus.constants import Endian
+# from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.transaction import ModbusSocketFramer
 from paho.mqtt import client as mqtt_client
 
 logging.basicConfig(level=logging.INFO)
@@ -32,8 +24,11 @@ config = {}
 sources = []
 schema = {}
 
+
 class MqttBroker:
-    def __init__(self, host : str, port : int, username : str, password: str, topic_prefix : str, tls : bool = False):
+
+    def __init__(self, host: str, port: int, username: str, password: str,
+                topic_prefix: str, tls: bool = False):
         self.host = host
         self.port = port
         self.username = username
@@ -44,10 +39,10 @@ class MqttBroker:
         self.client = mqtt_client.Client(self.client_id)
         self.client.username_pw_set(self.username, self.password)
         self.is_connected = False
-        if self.tls == True:
-            #sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-            #sslcontext.check_hostname = False
-            #self.client.tls_set(cert_reqs=ssl.CERT_NONE, keyfile=None, certfile=None)
+        if self.tls is True:
+            # sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            # sslcontext.check_hostname = False
+            # self.client.tls_set(cert_reqs=ssl.CERT_NONE, keyfile=None, certfile=None)
             self.client.tls_set(keyfile=None, certfile=None)
             self.client.tls_insecure_set(True)
         log.info("Connecting to MQTT broker %s at port %d", self.host, self.port)
@@ -68,8 +63,12 @@ class MqttBroker:
             log.error(userdata)
             log.error(flags)
 
+
 class Register:
-    def __init__(self, name : str, topic: str, start : int, length : int = 2, substract : float = 0, divide : float = 1, decimals : int = 0, signed : bool = False):
+
+    def __init__(self, name: str, topic: str, start: int, length: int = 2,
+                substract: float = 0, divide: float = 1, decimals: int = 0,
+                signed: bool = False):
         self.name = name
         self.topic = topic
         self.start = start
@@ -79,20 +78,31 @@ class Register:
         self.substract = substract
         self.signed = signed
 
+
 class Schema:
-    def __init__(self, name : str, readings : List[Register]):
+
+    def __init__(self, name: str, readings: List[Register]):
         self.name = name
         self.readings = readings
 
+
 class ModbusSource:
-    def __init__(self, name : str, broker: MqttBroker, host : str, port : int, schema : Schema, unitid : int = 1, topic_prefix : str = None):
+
+    def __init__(self, name: str, broker: MqttBroker, host: str, port: int,
+                schema: Schema, unitid: int = 1, topic_prefix: str = None):
         self.mqtt = broker
         self.host = host
         self.port = port
         self.unitid = unitid
         self.schema = schema
         self.name = name
-        self.client = ModbusTcpClient(host=self.host, port=self.port, retries=1, timeout=10, retry_on_empty=True, framer=ModbusSocketFramer, close_comm_on_error=False)
+        self.client = ModbusTcpClient(host=self.host,
+                        port=self.port,
+                        retries=1,
+                        timeout=10,
+                        retry_on_empty=True,
+                        framer=ModbusSocketFramer,
+                        close_comm_on_error=False)
         self.cache = {}
         self.track = {}
         self.lock = Lock()
@@ -107,17 +117,18 @@ class ModbusSource:
         self.client.connect()
         self.active = True
         try:
-            while sigStop == False:
+            while sigStop is False:
                 for r in self.schema.readings:
 
                     if sigStop:
                         break
 
-                    log.debug("Reading %s (register %d with length %d from unit %d)", r.name, r.start, r.length, self.unitid)
+                    log.debug("Reading %s (register %d with length %d from unit %d)",
+                            r.name, r.start, r.length, self.unitid)
                     try:
                         rr = self.client.read_holding_registers(r.start, r.length, slave=self.unitid)
                     except ModbusException as e:
-                        log.error(f"Received ModbusException({ec}) from library")
+                        log.error(f"Received ModbusException({e}) from library")
                         continue
                     if rr.isError():
                         log.error(f"Received Modbus library error({rr})")
@@ -125,11 +136,11 @@ class ModbusSource:
                     if isinstance(rr, ExceptionResponse):
                         log.error(f"Received Modbus library exception ({rr})")
                         continue
-                    #decoder = BinaryPayloadDecoder.fromRegisters(
+                    # decoder = BinaryPayloadDecoder.fromRegisters(
                     #    rr.registers,
                     #    byteorder=Endian.BIG,
                     #    wordorder=Endian.BIG
-                    #)
+                    # )
                     val = rr.registers[0]
                     if r.signed and int(val) >= 32768:
                         val = int(val)-65535
@@ -142,10 +153,10 @@ class ModbusSource:
                     log.debug("got %s", val)
 
                     with self.lock:
-                        if self.cache.get(r.start, None) == None or self.cache[r.start] != val:
+                        if self.cache.get(r.start, None) is None or self.cache[r.start] != val:
                             self.track[r.start] = True
                         self.cache[r.start] = val
-                
+
                 time.sleep(1)
         finally:
             try:
@@ -153,10 +164,12 @@ class ModbusSource:
             finally:
                 self.active = False
 
+
 def on_stop_signal(signum, frame):
     global sigStop
     sigStop = True
     log.debug("Received stop signal.")
+
 
 def main(argv):
     global sigStop, sources, log
@@ -164,7 +177,7 @@ def main(argv):
     signal.signal(signal.SIGTERM, on_stop_signal)
 
     cfgfile = "config.yaml"
-    opts, args = getopt.getopt(argv,"hc:",["config="])
+    opts, args = getopt.getopt(argv, "hc:", ["config="])
     for opt, arg in opts:
         if opt in ("-c", "--config"):
             cfgfile = arg
@@ -177,12 +190,12 @@ def main(argv):
         for r in s["readings"]:
             regs.append(
                 Register(
-                    r["name"], 
-        	    r["topic"], 
-                    int(r["register"]), 
-                    int(r.get("length", 2)), 
-                    float(r.get("substract", 0)), 
-                    float(r.get("divide", 1)), 
+                    r["name"],
+                    r["topic"],
+                    int(r["register"]),
+                    int(r.get("length", 2)),
+                    float(r.get("substract", 0)),
+                    float(r.get("divide", 1)),
                     int(r.get("decimals", 0)),
                     bool(r.get("signed", False))
                 )
@@ -191,11 +204,11 @@ def main(argv):
 
     log.debug("Configuring mqtt broker %s", config["mqtt"]["host"])
     b = MqttBroker(
-            config["mqtt"]["host"], 
-            int(config["mqtt"]["port"]), 
-            config["mqtt"]["username"], 
-            config["mqtt"]["password"], 
-            config["mqtt"]["topic_prefix"], 
+            config["mqtt"]["host"],
+            int(config["mqtt"]["port"]),
+            config["mqtt"]["username"],
+            config["mqtt"]["password"],
+            config["mqtt"]["topic_prefix"],
             bool(config["mqtt"]["tls"])
         )
 
@@ -203,13 +216,13 @@ def main(argv):
         log.debug("Configuring source %s", source["name"])
         sources.append(
             ModbusSource(
-                source["name"], 
-                b, 
-                source["host"], 
-                int(source["port"]), 
-                schema[source["schema"]], 
-                int(source.get("unitid", 1)), 
-                topic_prefix = source.get("topic_prefix", None)
+                source["name"],
+                b,
+                source["host"],
+                int(source["port"]),
+                schema[source["schema"]],
+                int(source.get("unitid", 1)),
+                topic_prefix=source.get("topic_prefix", None)
             )
         )
 
@@ -221,19 +234,19 @@ def main(argv):
         t.daemon = True
         t.start()
 
-    while sigStop == False:
+    while sigStop is False:
 
         time.sleep(3)
 
         for i in sources:
-            if i.mqtt.is_connected != True:
+            if i.mqtt.is_connected is not True:
                 continue
             topic_prefix = i.mqtt.topic_prefix + '/' + i.topic_prefix
             for r in i.schema.readings:
                 topic = topic_prefix + '/' + r.topic
                 with i.lock:
                     changed = i.track.get(r.start, None)
-                    if changed == True:
+                    if changed is True:
                         log.debug("Publishing topic %s value %s", topic, str(i.cache[r.start]))
                         ret = i.mqtt.client.publish(topic, str(i.cache[r.start]))
                         if ret[0] != 0:
@@ -244,7 +257,8 @@ def main(argv):
     for i in sources:
         log.info("Waiting for poller %s", i.host)
         while i.active:
-    	    time.sleep(1)
+            time.sleep(1)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

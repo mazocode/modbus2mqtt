@@ -1,0 +1,8 @@
+services:
+  modbus2mqtt:
+    image: ghcr.io/mazocode/modbus2mqtt
+    restart: unless-stopped
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "./config.yaml:/config.yaml:ro"

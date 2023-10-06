@@ -1,0 +1,25 @@
+name: Code quality check
+
+on: [push, pull_request]
+
+jobs:
+  code-quality-check:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          pip install -r requirements.txt
+      - name: Static code analysis
+        run: |
+          make check-code
