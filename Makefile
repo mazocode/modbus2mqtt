@@ -43,7 +43,7 @@ export-requirements:
 	poetry export -f requirements.txt --output requirements.txt
 
 check-code:
-	poetry run flake8 .
+	poetry run pflake8 .
 
 show-dependencies:
 	poetry show

@@ -143,12 +143,12 @@ class ModbusSource:
                     # )
                     val = rr.registers[0]
                     if r.signed and int(val) >= 32768:
-                        val = int(val)-65535
+                        val = int(val) - 65535
                     if r.decimals > 0:
-                        fmt = '{0:.'+str(r.decimals)+'f}'
-                        val = float(fmt.format((int(val)-float(r.substract)) / float(r.divide)))
+                        fmt = '{0:.' + str(r.decimals) + 'f}'
+                        val = float(fmt.format((int(val) - float(r.substract)) / float(r.divide)))
                     else:
-                        val = int(((int(val)-float(r.substract)) / float(r.divide)))
+                        val = int(((int(val) - float(r.substract)) / float(r.divide)))
 
                     log.debug("got %s", val)
 
@@ -204,13 +204,12 @@ def main(argv):
 
     log.debug("Configuring mqtt broker %s", config["mqtt"]["host"])
     b = MqttBroker(
-            config["mqtt"]["host"],
-            int(config["mqtt"]["port"]),
-            config["mqtt"]["username"],
-            config["mqtt"]["password"],
-            config["mqtt"]["topic_prefix"],
-            bool(config["mqtt"]["tls"])
-        )
+        config["mqtt"]["host"],
+        int(config["mqtt"]["port"]),
+        config["mqtt"]["username"],
+        config["mqtt"]["password"],
+        config["mqtt"]["topic_prefix"],
+        bool(config["mqtt"]["tls"]))
 
     for source in config["sources"]:
         log.debug("Configuring source %s", source["name"])
