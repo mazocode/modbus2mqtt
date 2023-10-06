@@ -19,6 +19,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
+          pip install flake8
           pip install -r requirements.txt
       - name: Static code analysis
         run: |
