@@ -100,11 +100,11 @@ schema:
 sources:
   - name: "inverter1"
     schema: deye-sg04lp3-eu
-    topic_prefix: "i1"    # <--- becomes pv/i1
+    topic_prefix: "1/i1"    # <--- becomes pv/1/i1
   - name: "inverter2"
     schema: deye-sg04lp3-eu
-    topic_prefix: "i2"    # <--- becomes pv/i2
-  # ...
+    topic_prefix: "1/i2"    # <--- becomes pv/1/i2
+    # ...
 ```
 
 Result:
