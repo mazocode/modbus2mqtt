@@ -124,6 +124,10 @@ Result:
 
 ![MQQT Explorer Screenshot](examples/Deye-SG04LP3-EU/deye-modbus2mqtt-example.jpg)
 
+Home Assistant device sensors:
+
+![MQQT Explorer Screenshot](examples/Deye-SG04LP3-EU/ha-mqtt-deye-data.jpg)
+
 ## Known Issues
 
 - SSL with self signed certificates seems broken
