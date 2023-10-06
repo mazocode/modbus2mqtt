@@ -1,7 +1,9 @@
 services:
   modbus2mqtt:
-    image: ghcr.io/mazocode/modbus2mqtt
+    container_name: modbus2mqtt
+    image: ghcr.io/mazocode/modbus2mqtt:latest
     restart: unless-stopped
+    network_mode: host
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
