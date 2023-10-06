@@ -4,7 +4,7 @@ mqtt:
   tls: false
   username: "<username>"
   password: "<password>"
-  topic_prefix: "deye"
+  topic_prefix: "pv"
 
 # Modbus register example for Deye SUN-xK-SG04LP3-EU
 schema:
@@ -215,14 +215,14 @@ sources:
   host: "192.168.0.30"
   port: 502
   schema: deye-sg04lp3-eu
-  topic_prefix: "inverter-3"
+  topic_prefix: "i3"
 - name: "deye2"
   host: "192.168.0.20"
   port: 502
   schema: deye-sg04lp3-eu
-  topic_prefix: "inverter-2"
+  topic_prefix: "i2"
 - name: "deye1"
   host: "192.168.0.10"
   port: 502
   schema: deye-sg04lp3-eu
-  topic_prefix: "inverter-1"
+  topic_prefix: "i1"

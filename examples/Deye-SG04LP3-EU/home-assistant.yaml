@@ -1,0 +1,407 @@
+- sensor:
+    name: "Grid Energy Sold Today"
+    unique_id: "pv1i1_grid_energy_sold_today"
+    unit_of_measurement: kWh
+    expire_after: 86400
+    device_class: energy
+    state_class: total_increasing
+    icon: mdi:meter-electric
+    qos: 1
+    state_topic: "pv/1/i1/grid/today/sold"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Energy Bought Today"
+    unique_id: "pv1i1_grid_energy_bought_today"
+    unit_of_measurement: kWh
+    expire_after: 86400
+    device_class: energy
+    state_class: total_increasing
+    icon: mdi:meter-electric
+    qos: 1
+    state_topic: "pv/1/i1/grid/today/bought"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "PV Production Today"
+    unique_id: "pv1i1_pv_production_today"
+    unit_of_measurement: kWh
+    expire_after: 86400
+    device_class: energy
+    state_class: total_increasing
+    icon: mdi:meter-electric
+    qos: 1
+    state_topic: "pv/1/i1/pv/today"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Battery Charge Today"
+    unique_id: "pv1i1_battery_charge_today"
+    unit_of_measurement: kWh
+    expire_after: 86400
+    device_class: energy
+    state_class: total_increasing
+    icon: mdi:meter-electric
+    qos: 1
+    state_topic: "pv/1/i1/battery/today/charged"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Battery Discharge Today"
+    unique_id: "pv1i1_battery_discharge_today"
+    unit_of_measurement: kWh
+    expire_after: 86400
+    device_class: energy
+    state_class: total_increasing
+    icon: mdi:meter-electric
+    qos: 1
+    state_topic: "pv/1/i1/battery/today/discharged"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Battery State of Charge"
+    unique_id: "pv1i1_battery_soc"
+    unit_of_measurement: '%'
+    expire_after: 86400
+    device_class: battery
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/battery/soc"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Battery Voltage"
+    unique_id: "pv1i1_battery_voltage"
+    unit_of_measurement: 'V'
+    expire_after: 86400
+    device_class: voltage
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/battery/volt"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Battery Output Power"
+    unique_id: "pv1i1_battery_output_power"
+    unit_of_measurement: 'W'
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/battery/output_power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Battery Output Current"
+    unique_id: "pv1i1_battery_output_current"
+    unit_of_measurement: 'A'
+    expire_after: 86400
+    device_class: current
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/battery/output_current"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "PV String 1 Power"
+    unique_id: "pv1i1_pv_string1_power"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    icon: mdi:solar-power
+    qos: 1
+    state_topic: "pv/1/i1/pv/string/1/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "PV String 2 Power"
+    unique_id: "pv1i1_pv_string2_power"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    icon: mdi:solar-power
+    qos: 1
+    state_topic: "pv/1/i1/pv/string/2/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Power Usage"
+    unique_id: "pv1i1_grid_power_usage"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/grid/now/total/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Load Power Usage"
+    unique_id: "pv1i1_load_power_usage"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/load/now/total/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Load Power L1"
+    unique_id: "pv1i1_load_power_l1"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/load/now/l1/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Load Voltage L1"
+    unique_id: "pv1i1_load_voltage_l1"
+    unit_of_measurement: V
+    expire_after: 86400
+    device_class: voltage
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/load/now/l1/volt"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Load Power L2"
+    unique_id: "pv1i1_load_power_l2"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/load/now/l2/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Load Voltage L2"
+    unique_id: "pv1i1_load_voltage_l2"
+    unit_of_measurement: V
+    expire_after: 86400
+    device_class: voltage
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/load/now/l2/volt"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Load Power L3"
+    unique_id: "pv1i1_load_power_l3"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/load/now/l3/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Load Voltage L3"
+    unique_id: "pv1i1_load_voltage_l3"
+    unit_of_measurement: V
+    expire_after: 86400
+    device_class: voltage
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/load/now/l3/volt"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Power L1"
+    unique_id: "pv1i1_grid_power_l1"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/grid/now/l1/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Voltage L1"
+    unique_id: "pv1i1_grid_voltage_l1"
+    unit_of_measurement: V
+    expire_after: 86400
+    device_class: voltage
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/grid/now/l1/volt"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Power L2"
+    unique_id: "pv1i1_grid_power_l2"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/grid/now/l2/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Voltage L2"
+    unique_id: "pv1i1_grid_voltage_l2"
+    unit_of_measurement: V
+    expire_after: 86400
+    device_class: voltage
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/grid/now/l2/volt"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Power L3"
+    unique_id: "pv1i1_grid_power_l3"
+    unit_of_measurement: W
+    expire_after: 86400
+    device_class: power
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/grid/now/l3/power"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
+- sensor:
+    name: "Grid Voltage L3"
+    unique_id: "pv1i1_grid_voltage_l3"
+    unit_of_measurement: V
+    expire_after: 86400
+    device_class: voltage
+    state_class: measurement
+    qos: 1
+    state_topic: "pv/1/i1/grid/now/l3/volt"
+    device:
+      name: "PV1 Inverter 1"
+      manufacturer: "Deye"
+      model: "SUN-10K-SG04LP3-EU"
+      suggested_area: "PV"
+      identifiers:
+      - "pv1i1"
