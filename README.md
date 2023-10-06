@@ -1,5 +1,7 @@
 # Modbus to MQTT Gateway
 
+![code-analysis](https://github.com/mazocode/modbus2mqtt/actions/workflows/run-code-analysis.yaml/badge.svg)
+
 This is a little helper I wrote to read registers from my Deye inverters and publish them as MQTT message. The configuration can be adjusted to read from any Modbus device via a Modbus TCP gateway (e.g. 
 the Waveshare RS485 to RJ45) and supports reading from multiple sources at the same time.
 
