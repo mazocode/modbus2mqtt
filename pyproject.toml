@@ -2,7 +2,7 @@
 name = "imodbus2mqtt"
 version = "2023.10.2"
 description = "Reads Modbus registers over TCP and publishes them to MQTT."
-authors = ["Marcus Zoller <kbialek@users.noreply.github.com>"]
+authors = ["Marcus Zoller <mazocode@users.noreply.github.com>"]
 license = "MIT"
 readme = "README.md"
 
