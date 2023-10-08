@@ -5,24 +5,6 @@
 This is a little helper I wrote to read registers from my Deye inverters and publish them as MQTT message. The configuration can be adjusted to read from any Modbus device via a Modbus TCP gateway (e.g. 
 the Waveshare RS485 to RJ45) and supports reading from multiple sources at the same time.
 
-## Prerequisites
-
-Python >= 3.11
-
-## Installing
-
-1. Clone the repository
-
-```bash
-git clone https://github.com/mazocode/modbus2mqtt.git
-```
-
-2. Install required python packages
-
-```bash
-pip install -r requirements. txt
-```
-
 ## Configuration
 
 Create a configuration file (see examples/). Here is the basic syntax:
@@ -68,7 +50,7 @@ sources:
 ```
 
 
-## Running
+## Installation
 
 ### Docker
 
