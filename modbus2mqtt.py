@@ -69,8 +69,8 @@ class MqttBroker:
             log.error(flags)
 
     def on_message(self, client, userdata, message):
-        log.debug("message received '",str(message.payload.decode("utf-8")),\
-            "' via topic '",message.topic,"' (retained=",message.retain,").")
+        log.debug("message received '", str(message.payload.decode("utf-8")),
+            "' via topic '", message.topic, "' (retained=", message.retain, ").")
 
         subscriber = self.subscribers.get(message.topic, None)
         if subscriber is not None:
@@ -171,7 +171,7 @@ class CoilsRegister(Register):
 
         rr = src.client.read_coils(self.start, self.length, slave=unitid)
         if not rr:
-            raise ModbusException(f"Received empty modbus respone.")
+            raise ModbusException("Received empty modbus respone.")
         if rr.isError():
             raise ModbusException(f"Received Modbus library error({rr}).")
         if isinstance(rr, ExceptionResponse):
@@ -179,8 +179,8 @@ class CoilsRegister(Register):
 
         val = {}
         for c in self.coils:
-            name = re.sub('/\s\s+/g', '_', str(c["name"]).strip())
-            if rr.bits[c["bit"]-1] == 0:
+            name = re.sub(r'/\s\s+/g', '_', str(c["name"]).strip())
+            if rr.bits[c["bit"] - 1] == 0:
                 val[name] = c["off_value"]
             else:
                 val[name] = c["on_value"]
@@ -204,7 +204,7 @@ class CoilsRegister(Register):
         # Find the coil to set
         coil = None
         for c in self.coils:
-            name = re.sub('/\s\s+/g', '_', str(c["name"]).strip())
+            name = re.sub(r'/\s\s+/g', '_', str(c["name"]).strip())
             if cname == name or cname == str(c["name"]):
                 if 'w' in c["mode"]:
                     # Can't write to this coil
@@ -222,7 +222,7 @@ class CoilsRegister(Register):
 
         rr = src.client.write_coil(self.start + int(coil["bit"]), value, slave=unitid)
         if not rr:
-            raise ModbusException(f"Received empty modbus respone.")
+            raise ModbusException("Received empty modbus respone.")
         if rr.isError():
             raise ModbusException(f"Received Modbus library error({rr}).")
         if isinstance(rr, ExceptionResponse):
@@ -232,8 +232,8 @@ class CoilsRegister(Register):
 class HoldingRegister(Register):
 
     def __init__(self, name: str, topic: str, register: int, length: int = 2,
-                mode: str = "r", substract: float = 0, divide: float = 1, 
-                decimals: int = 0, signed: bool = False, unitid: int=None, **kvargs):
+                mode: str = "r", substract: float = 0, divide: float = 1,
+                decimals: int = 0, signed: bool = False, unitid: int = None, **kvargs):
         super().__init__(name, topic, register, length, mode, unitid=unitid)
         self.divide = divide
         self.decimals = decimals
@@ -247,7 +247,7 @@ class HoldingRegister(Register):
 
         rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
         if not rr:
-            raise ModbusException(f"Received empty modbus respone.")
+            raise ModbusException("Received empty modbus respone.")
         if rr.isError():
             raise ModbusException(f"Received Modbus library error({rr}).")
         if isinstance(rr, ExceptionResponse):
@@ -274,7 +274,7 @@ class Schema:
 class ModbusSource:
 
     def __init__(self, name: str, broker: MqttBroker, host: str, port: int,
-                schema: Schema, unitid: int = 1, topic_prefix: str = None, 
+                schema: Schema, unitid: int = 1, topic_prefix: str = None,
                 pollms: int = 100, enabled: bool = True):
         self.mqtt = broker
         self.host = host
@@ -302,7 +302,7 @@ class ModbusSource:
         if topic_prefix:
             self.topic_prefix = topic_prefix
         else:
-            self.topic_prefix = re.sub('/\s\s+/g', '_', self.name.strip().lower())
+            self.topic_prefix = re.sub(r'/\s\s+/g', '_', self.name.strip().lower())
 
         self.mqtt.rpc_subscribe(self)
 
@@ -345,7 +345,7 @@ class ModbusSource:
                     if sigStop:
                         break
 
-                    msg = self.queue.get();
+                    msg = self.queue.get()
                     if not msg:
                         continue
 
@@ -354,7 +354,7 @@ class ModbusSource:
                         continue
 
                     # Find the target
-                    targe = None
+                    target = None
                     for r in self.schema.readings:
                         if r.topic == name or r.name == name:
                             target = r
@@ -365,8 +365,7 @@ class ModbusSource:
                         case "set":
                             target.set_value(self, msg.get("params", {}))
 
-
-                time.sleep(self.pollms/1000)
+                time.sleep(self.pollms / 1000)
         finally:
             try:
                 self.client.close()
@@ -435,14 +434,13 @@ def main(argv):
 
     log.debug("Configuring mqtt broker %s", config["mqtt"]["host"])
     broker = MqttBroker(
-            str(config["mqtt"].get("host", "localhost")),
-            int(config["mqtt"].get("port", 1883)),
-            str(config["mqtt"].get("username", None)),
-            str(config["mqtt"].get("password", None)),
-            str(config["mqtt"].get("topic_prefix", None)),
-            bool(config["mqtt"].get("tls", False)),
-            clientid=str(config["mqtt"].get("clientid", "modbus2mqtt"))
-        )
+        str(config["mqtt"].get("host", "localhost")),
+        int(config["mqtt"].get("port", 1883)),
+        str(config["mqtt"].get("username", None)),
+        str(config["mqtt"].get("password", None)),
+        str(config["mqtt"].get("topic_prefix", None)),
+        bool(config["mqtt"].get("tls", False)),
+        clientid=str(config["mqtt"].get("clientid", "modbus2mqtt")))
 
     for source in config["sources"]:
         log.debug("Configuring source %s", source["name"])

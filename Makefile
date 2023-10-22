@@ -42,6 +42,9 @@ docker-run:
 export-requirements:
 	poetry export -f requirements.txt --output requirements.txt
 
+init-env:
+	poetry env use $(which python3.11)
+
 check-code:
 	poetry run pflake8 .
 
