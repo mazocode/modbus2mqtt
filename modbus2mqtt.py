@@ -434,11 +434,11 @@ def main(argv):
 
     log.debug("Configuring mqtt broker %s", config["mqtt"]["host"])
     broker = MqttBroker(
-        str(config["mqtt"].get("host", "localhost")),
+        config["mqtt"].get("host", "localhost"),
         int(config["mqtt"].get("port", 1883)),
-        str(config["mqtt"].get("username", None)),
-        str(config["mqtt"].get("password", None)),
-        str(config["mqtt"].get("topic_prefix", None)),
+        config["mqtt"].get("username", None),
+        config["mqtt"].get("password", None),
+        config["mqtt"].get("topic_prefix", None),
         bool(config["mqtt"].get("tls", False)),
         clientid=str(config["mqtt"].get("clientid", "modbus2mqtt")))
 
@@ -448,7 +448,7 @@ def main(argv):
             ModbusSource(
                 source["name"],
                 broker,
-                str(source.get("host", "localhost")),
+                source.get("host", "localhost"),
                 int(source.get("port", 502)),
                 schema[source["schema"]],
                 int(source.get("unitid", 1)),
