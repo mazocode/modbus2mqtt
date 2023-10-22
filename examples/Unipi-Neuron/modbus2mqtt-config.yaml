@@ -1,0 +1,49 @@
+mqtt:
+  host: "localhost"
+  port: 1883
+  username: "myuser"
+  password: "mysecret"
+
+schema:
+- name: neuron
+  readings:
+  - name: "Digital Outputs 1"
+    topic: "outputs/1"
+    unitid: 1
+    register: 0
+    coils:
+    - name: "switch1"
+      bit: 1
+      on_value: "ON"
+      off_value: "OFF"
+    - name: "switch2"
+      bit: 2
+      on_value: 1
+      off_value: 0
+    - name: "switch3"
+      bit: 3
+      on_value: True
+      off_value: False
+    - name: "switch4"
+      bit: 4
+  - name: "Digital Outputs 2"
+    topic: "outputs/2"
+    unitid: 2
+    register: 0
+    coils:
+    - name: "switch1"
+      bit: 1
+    - name: "switch2"
+      bit: 2
+    - name: "switch3"
+      bit: 3
+    - name: "switch4"
+      bit: 4
+
+sources:
+- name: "neuton1"
+  host: "192.168.1.100"
+  port: 502
+  pollms: 100
+  schema: neuron
+  topic_prefix: "neuron1"

@@ -6,7 +6,10 @@ import logging
 import signal
 import time
 import yaml
+import json
+import re
 from typing import List
+from queue import Queue
 from threading import Thread, Lock
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
@@ -28,17 +31,18 @@ schema = {}
 class MqttBroker:
 
     def __init__(self, host: str, port: int, username: str, password: str,
-                topic_prefix: str, tls: bool = False):
+                topic_prefix: str, tls: bool = False, clientid: str = "modbus2mqtt"):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
         self.topic_prefix = topic_prefix
         self.tls = tls
-        self.client_id = "modbus2mqtt"
-        self.client = mqtt_client.Client(self.client_id)
+        self.clientid = clientid
+        self.client = mqtt_client.Client(self.clientid)
         self.client.username_pw_set(self.username, self.password)
         self.is_connected = False
+        self.subscribers = {}
         if self.tls is True:
             # sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
             # sslcontext.check_hostname = False
@@ -48,6 +52,7 @@ class MqttBroker:
         log.info("Connecting to MQTT broker %s at port %d", self.host, self.port)
         self.client.on_connect = self.on_connect
         self.client.on_publish = self.on_publish
+        self.client.on_message = self.on_message
         self.client.connect(self.host, port=self.port, keepalive=60)
         self.client.loop_start()
 
@@ -63,20 +68,200 @@ class MqttBroker:
             log.error(userdata)
             log.error(flags)
 
+    def on_message(self, client, userdata, message):
+        log.debug("message received '",str(message.payload.decode("utf-8")),\
+            "' via topic '",message.topic,"' (retained=",message.retain,").")
+
+        subscriber = self.subscribers.get(message.topic, None)
+        if subscriber is not None:
+            data = None
+            try:
+                data = json.loads(str(message.payload.decode("utf-8")))
+            except Exception as e:
+                log.error(f"Invalid message received via topic {message.topic} (retained={message.retain}): {e}")
+                return
+            subscriber.enqueue(data)
+        return 0
+
+    def publish(self, topic: str, value: str):
+        if self.is_connected is not True:
+            return False
+        t = topic
+        if self.topic_prefix is not None:
+            t = self.topic_prefix + '/' + t
+        log.debug("Publishing topic %s value %s", t, value)
+        ret = self.client.publish(t, value)
+        if ret[0] != 0:
+            log.error("Failed to deliver %s", t)
+            return False
+        return True
+
+    def rpc_subscribe(self, src):
+        t = src.topic_prefix
+        if self.topic_prefix is not None:
+            t = self.topic_prefix + '/' + t + '/rpc'
+        self.subscribers[t] = src
+        self.client.subscribe(t, 0)
+
+    def rpc_unsubscribe(self, src):
+        t = src.topic_prefix
+        if self.topic_prefix is not None:
+            t = self.topic_prefix + '/' + t + '/rpc'
+        if self.subscribers.get(t, None) is not None:
+            self.client.unsubscribe(t)
+            del self.subscribers[t]
+
 
 class Register:
 
-    def __init__(self, name: str, topic: str, start: int, length: int = 2,
-                substract: float = 0, divide: float = 1, decimals: int = 0,
-                signed: bool = False):
+    def __init__(self, name: str, topic: str, register: int, length: int, mode: str, unitid: int = None):
         self.name = name
         self.topic = topic
-        self.start = start
+        self.start = register
         self.length = length
+        self.mode = [*mode]
+        self.unitid = unitid
+
+    def get_value(self, src):
+        log.debug("Method not implemented.")
+        return False
+
+    def set_value(self, params):
+        log.debug("Method not implemented.")
+        return False
+
+    def can_read(self):
+        return 'r' in self.mode
+
+    def can_write(self):
+        return 'w' in self.mode
+
+
+class CoilsRegister(Register):
+
+    def __init__(self, name: str, topic: str, register: int, coils: list,
+                length: int = 1, mode: str = "rw", unitid: int = None, **kvargs):
+        super().__init__(name, topic, register, length, mode, unitid=unitid)
+        self.length = length
+        self.coils = []
+        bit = 0
+        for c in coils:
+            bit += 1
+            if c.get('bit', None) is not None:
+                bit = c.get('bit', 1)
+            if bit > self.length:
+                self.length = bit
+            c["bit"] = bit
+            if 'on_value' not in c:
+                c["on_value"] = "ON"
+            if 'off_value' not in c:
+                c["off_value"] = "OFF"
+            if 'mode' not in c:
+                c["mode"] = self.mode
+            else:
+                c["mode"] = [*c["mode"]]
+            if 'name' not in c:
+                c["name"] = f"coil_{bit}"
+            self.coils.append(c)
+
+    def get_value(self, src):
+        unitid = self.unitid
+        if unitid is None:
+            unitid = src.unitid
+
+        rr = src.client.read_coils(self.start, self.length, slave=unitid)
+        if not rr:
+            raise ModbusException(f"Received empty modbus respone.")
+        if rr.isError():
+            raise ModbusException(f"Received Modbus library error({rr}).")
+        if isinstance(rr, ExceptionResponse):
+            raise ModbusException(f"Received Modbus library exception ({rr}).")
+
+        val = {}
+        for c in self.coils:
+            name = re.sub('/\s\s+/g', '_', str(c["name"]).strip())
+            if rr.bits[c["bit"]-1] == 0:
+                val[name] = c["off_value"]
+            else:
+                val[name] = c["on_value"]
+        return val
+
+    def set_value(self, src, params):
+        unitid = self.unitid
+        if unitid is None:
+            unitid = src.unitid
+
+        value = params.get("value", None)
+        if value is None:
+            # Can't set unknown state
+            return False
+
+        cname = params.get("coil", None)
+        if cname is None:
+            # Can't set unknown state
+            return False
+
+        # Find the coil to set
+        coil = None
+        for c in self.coils:
+            name = re.sub('/\s\s+/g', '_', str(c["name"]).strip())
+            if cname == name or cname == str(c["name"]):
+                if 'w' in c["mode"]:
+                    # Can't write to this coil
+                    return False
+                coil = c
+                break
+
+        if coil is None:
+            return False
+
+        if value == c["on_value"] or bool(value):
+            value = True
+        else:
+            value = False
+
+        rr = src.client.write_coil(self.start + int(coil["bit"]), value, slave=unitid)
+        if not rr:
+            raise ModbusException(f"Received empty modbus respone.")
+        if rr.isError():
+            raise ModbusException(f"Received Modbus library error({rr}).")
+        if isinstance(rr, ExceptionResponse):
+            raise ModbusException(f"Received Modbus library exception ({rr}).")
+
+
+class HoldingRegister(Register):
+
+    def __init__(self, name: str, topic: str, register: int, length: int = 2,
+                mode: str = "r", substract: float = 0, divide: float = 1, 
+                decimals: int = 0, signed: bool = False, unitid: int=None, **kvargs):
+        super().__init__(name, topic, register, length, mode, unitid=unitid)
         self.divide = divide
         self.decimals = decimals
         self.substract = substract
         self.signed = signed
+
+    def get_value(self, src):
+        unitid = self.unitid
+        if unitid is None:
+            unitid = src.unitid
+
+        rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
+        if not rr:
+            raise ModbusException(f"Received empty modbus respone.")
+        if rr.isError():
+            raise ModbusException(f"Received Modbus library error({rr}).")
+        if isinstance(rr, ExceptionResponse):
+            raise ModbusException(f"Received Modbus library exception ({rr}).")
+
+        val = rr.registers[0]
+        if self.signed and int(val) >= 32768:
+            val = int(val) - 65535
+        if self.decimals > 0:
+            fmt = '{0:.' + str(self.decimals) + 'f}'
+            val = float(fmt.format((int(val) - float(self.substract)) / float(self.divide)))
+        else:
+            val = int(((int(val) - float(self.substract)) / float(self.divide)))
+        return val
 
 
 class Schema:
@@ -89,33 +274,45 @@ class Schema:
 class ModbusSource:
 
     def __init__(self, name: str, broker: MqttBroker, host: str, port: int,
-                schema: Schema, unitid: int = 1, topic_prefix: str = None):
+                schema: Schema, unitid: int = 1, topic_prefix: str = None, 
+                pollms: int = 100, enabled: bool = True):
         self.mqtt = broker
         self.host = host
         self.port = port
         self.unitid = unitid
         self.schema = schema
         self.name = name
-        self.client = ModbusTcpClient(host=self.host,
-                        port=self.port,
-                        retries=1,
-                        timeout=10,
-                        retry_on_empty=True,
-                        framer=ModbusSocketFramer,
-                        close_comm_on_error=False)
+        self.enabled = enabled
+        self.queue = Queue()
+        if enabled:
+            self.client = ModbusTcpClient(host=self.host,
+                            port=self.port,
+                            retries=1,
+                            timeout=10,
+                            retry_on_empty=True,
+                            framer=ModbusSocketFramer,
+                            close_comm_on_error=False)
         self.cache = {}
         self.track = {}
         self.lock = Lock()
-        self.active = False
+        self.is_active = False
+        self.pollms = pollms
+        self.is_online = False
+        self.was_online = None
         if topic_prefix:
             self.topic_prefix = topic_prefix
         else:
-            self.topic_prefix = self.name
+            self.topic_prefix = re.sub('/\s\s+/g', '_', self.name.strip().lower())
+
+        self.mqtt.rpc_subscribe(self)
+
+    def enqueue(self, action: dict):
+        self.queue.put(action)
 
     def poller_thread(self):
         log.info("Connecting to modbus server %s on port %d", self.host, self.port)
         self.client.connect()
-        self.active = True
+        self.is_active = True
         try:
             while sigStop is False:
                 for r in self.schema.readings:
@@ -123,46 +320,88 @@ class ModbusSource:
                     if sigStop:
                         break
 
-                    log.debug("Reading %s (register %d with length %d from unit %d)",
-                            r.name, r.start, r.length, self.unitid)
-                    try:
-                        rr = self.client.read_holding_registers(r.start, r.length, slave=self.unitid)
-                    except ModbusException as e:
-                        log.error(f"Received ModbusException({e}) from library")
-                        continue
-                    if rr.isError():
-                        log.error(f"Received Modbus library error({rr})")
-                        continue
-                    if isinstance(rr, ExceptionResponse):
-                        log.error(f"Received Modbus library exception ({rr})")
-                        continue
-                    # decoder = BinaryPayloadDecoder.fromRegisters(
-                    #    rr.registers,
-                    #    byteorder=Endian.BIG,
-                    #    wordorder=Endian.BIG
-                    # )
-                    val = rr.registers[0]
-                    if r.signed and int(val) >= 32768:
-                        val = int(val) - 65535
-                    if r.decimals > 0:
-                        fmt = '{0:.' + str(r.decimals) + 'f}'
-                        val = float(fmt.format((int(val) - float(r.substract)) / float(r.divide)))
-                    else:
-                        val = int(((int(val) - float(r.substract)) / float(r.divide)))
+                    if r.can_read():
 
-                    log.debug("got %s", val)
+                        log.debug("Reading %s (register %d with length %d from unit %d)",
+                                r.name, r.start, r.length, self.unitid)
+                        val = None
 
-                    with self.lock:
-                        if self.cache.get(r.start, None) is None or self.cache[r.start] != val:
-                            self.track[r.start] = True
-                        self.cache[r.start] = val
+                        try:
+                            val = r.get_value(self)
+                        except ModbusException as e:
+                            log.error(f"Received exception({e}) while trying to read from modbus slave.")
+                            self.is_online = False
+                            continue
 
-                time.sleep(1)
+                        self.is_online = True
+                        rid = id(r)
+                        with self.lock:
+                            if self.cache.get(rid, None) is None or self.cache[rid] != val:
+                                self.track[rid] = True
+                            self.cache[rid] = val
+
+                while not self.queue.empty():
+
+                    if sigStop:
+                        break
+
+                    msg = self.queue.get();
+                    if not msg:
+                        continue
+
+                    name = msg.get("target", "None")
+                    if not name:
+                        continue
+
+                    # Find the target
+                    targe = None
+                    for r in self.schema.readings:
+                        if r.topic == name or r.name == name:
+                            target = r
+                            break
+
+                    match msg.get("method", "invalid"):
+
+                        case "set":
+                            target.set_value(self, msg.get("params", {}))
+
+
+                time.sleep(self.pollms/1000)
         finally:
             try:
                 self.client.close()
+                topic = self.topic_prefix + '/online'
+                if self.mqtt.is_connected:
+                    self.mqtt.publish(topic, str(False).lower())
+                self.mqtt.rpc_unsubscribe(self)
             finally:
-                self.active = False
+                self.is_active = False
+
+    def publish_changes(self):
+        if self.mqtt.is_connected is not True:
+            return
+
+        if self.was_online is None or self.was_online != self.is_online:
+            topic = self.topic_prefix + '/online'
+            if self.mqtt.publish(topic, str(True).lower()):
+                self.was_online = self.is_online
+
+        for r in self.schema.readings:
+            with self.lock:
+                rid = id(r)
+                if not self.track.get(rid, False):
+                    continue
+                topic = self.topic_prefix + '/' + r.topic
+                val = None
+                if isinstance(self.cache[rid], dict):
+                    val = json.dumps(self.cache[rid])
+                else:
+                    val = str(self.cache[rid])
+                if self.mqtt.publish(topic, val):
+                    self.track[rid] = False
+                else:
+                    if self.mqtt.is_connected is not True:
+                        return
 
 
 def on_stop_signal(signum, frame):
@@ -188,74 +427,60 @@ def main(argv):
     for s in config["schema"]:
         regs = []
         for r in s["readings"]:
-            regs.append(
-                Register(
-                    r["name"],
-                    r["topic"],
-                    int(r["register"]),
-                    int(r.get("length", 2)),
-                    float(r.get("substract", 0)),
-                    float(r.get("divide", 1)),
-                    int(r.get("decimals", 0)),
-                    bool(r.get("signed", False))
-                )
-            )
+            if r.get("coils", None) is None:
+                regs.append(HoldingRegister(**r))
+            else:
+                regs.append(CoilsRegister(**r))
         schema[s["name"]] = Schema(s["name"], regs)
 
     log.debug("Configuring mqtt broker %s", config["mqtt"]["host"])
-    b = MqttBroker(
-        config["mqtt"]["host"],
-        int(config["mqtt"]["port"]),
-        config["mqtt"]["username"],
-        config["mqtt"]["password"],
-        config["mqtt"]["topic_prefix"],
-        bool(config["mqtt"]["tls"]))
+    broker = MqttBroker(
+            str(config["mqtt"].get("host", "localhost")),
+            int(config["mqtt"].get("port", 1883)),
+            str(config["mqtt"].get("username", None)),
+            str(config["mqtt"].get("password", None)),
+            str(config["mqtt"].get("topic_prefix", None)),
+            bool(config["mqtt"].get("tls", False)),
+            clientid=str(config["mqtt"].get("clientid", "modbus2mqtt"))
+        )
 
     for source in config["sources"]:
         log.debug("Configuring source %s", source["name"])
         sources.append(
             ModbusSource(
                 source["name"],
-                b,
-                source["host"],
-                int(source["port"]),
+                broker,
+                str(source.get("host", "localhost")),
+                int(source.get("port", 502)),
                 schema[source["schema"]],
                 int(source.get("unitid", 1)),
-                topic_prefix=source.get("topic_prefix", None)
+                topic_prefix=source.get("topic_prefix", None),
+                enabled=bool(source.get("enabled", True))
             )
         )
 
     log.debug("Init complete.")
 
     for i in sources:
-        log.info("Staring poller for %s", i.host)
-        t = Thread(target=i.poller_thread)
-        t.daemon = True
-        t.start()
+        if i.enabled:
+            log.info("Staring poller for %s", i.host)
+            t = Thread(target=i.poller_thread)
+            t.daemon = True
+            t.start()
 
     while sigStop is False:
 
-        time.sleep(3)
+        time.sleep(1)
+
+        if broker.is_connected is not True:
+            continue
 
         for i in sources:
-            if i.mqtt.is_connected is not True:
-                continue
-            topic_prefix = i.mqtt.topic_prefix + '/' + i.topic_prefix
-            for r in i.schema.readings:
-                topic = topic_prefix + '/' + r.topic
-                with i.lock:
-                    changed = i.track.get(r.start, None)
-                    if changed is True:
-                        log.debug("Publishing topic %s value %s", topic, str(i.cache[r.start]))
-                        ret = i.mqtt.client.publish(topic, str(i.cache[r.start]))
-                        if ret[0] != 0:
-                            log.error("Failed to deliver %s", topic)
-                        else:
-                            i.track[r.start] = False
+            i.publish_changes()
 
     for i in sources:
         log.info("Waiting for poller %s", i.host)
-        while i.active:
+        while i.is_active:
             time.sleep(1)
 
 
