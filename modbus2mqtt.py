@@ -104,7 +104,7 @@ class MqttBroker:
     def rpc_unsubscribe(self, src):
         t = src.topic_prefix
         if self.topic_prefix is not None:
-            t = self.topic_prefix + '/' + t 
+            t = self.topic_prefix + '/' + t
         if self.subscribers.get(t.lower() + '/rpc', None) is not None:
             log.info(f"Unsubscribing from rpc topic {t}/rpc.")
             self.client.unsubscribe(t + '/rpc')
