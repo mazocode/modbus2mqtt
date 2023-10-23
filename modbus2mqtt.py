@@ -69,10 +69,7 @@ class MqttBroker:
             log.error(flags)
 
     def on_message(self, client, userdata, message):
-        log.debug("message received '", str(message.payload.decode("utf-8")),
-            "' via topic '", message.topic, "' (retained=", message.retain, ").")
-
-        subscriber = self.subscribers.get(message.topic, None)
+        subscriber = self.subscribers.get(message.topic.lower(), None)
         if subscriber is not None:
             data = None
             try:
@@ -99,17 +96,19 @@ class MqttBroker:
     def rpc_subscribe(self, src):
         t = src.topic_prefix
         if self.topic_prefix is not None:
-            t = self.topic_prefix + '/' + t + '/rpc'
-        self.subscribers[t] = src
-        self.client.subscribe(t, 0)
+            t = self.topic_prefix + '/' + t
+        self.subscribers[t.lower() + '/rpc'] = src
+        log.info(f"Subscribing to rpc topic {t}/rpc.")
+        self.client.subscribe(t + '/rpc', 0)
 
     def rpc_unsubscribe(self, src):
         t = src.topic_prefix
         if self.topic_prefix is not None:
-            t = self.topic_prefix + '/' + t + '/rpc'
-        if self.subscribers.get(t, None) is not None:
-            self.client.unsubscribe(t)
-            del self.subscribers[t]
+            t = self.topic_prefix + '/' + t 
+        if self.subscribers.get(t.lower() + '/rpc', None) is not None:
+            log.info(f"Unsubscribing from rpc topic {t}/rpc.")
+            self.client.unsubscribe(t + '/rpc')
+            del self.subscribers[t.lower() + '/rpc']
 
 
 class Register:
@@ -206,8 +205,9 @@ class CoilsRegister(Register):
         for c in self.coils:
             name = re.sub(r'/\s\s+/g', '_', str(c["name"]).strip())
             if cname == name or cname == str(c["name"]):
-                if 'w' in c["mode"]:
+                if 'w' not in c["mode"]:
                     # Can't write to this coil
+                    log.info("Could not write becaue coil mode is set to read-only.")
                     return False
                 coil = c
                 break
@@ -215,12 +215,14 @@ class CoilsRegister(Register):
         if coil is None:
             return False
 
-        if value == c["on_value"] or bool(value):
+        if value == c["on_value"] or (not isinstance(value, str) and bool(value) is True):
             value = True
         else:
             value = False
 
-        rr = src.client.write_coil(self.start + int(coil["bit"]), value, slave=unitid)
+        addr = self.start + int(coil["bit"]) - 1
+        log.debug(f"Writing coil at address {addr} with value {value}.")
+        rr = src.client.write_coil(addr, value, slave=unitid)
         if not rr:
             raise ModbusException("Received empty modbus respone.")
         if rr.isError():
@@ -349,8 +351,8 @@ class ModbusSource:
                     if not msg:
                         continue
 
-                    name = msg.get("target", "None")
-                    if not name:
+                    name = msg.get("target", None)
+                    if name is None:
                         continue
 
                     # Find the target
@@ -359,6 +361,10 @@ class ModbusSource:
                         if r.topic == name or r.name == name:
                             target = r
                             break
+
+                    if target is None:
+                        log.info(f"Could not find rpc message target {name}")
+                        continue
 
                     match msg.get("method", "invalid"):
 
