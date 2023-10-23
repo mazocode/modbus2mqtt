@@ -1,4 +1,11 @@
 
+## [2023.10.5] - 2023-10-22 Bugfix Release
+
+- Fixed missing message retain
+
+- Fixed invalid topic for missing root prefix issue
+
+
 ## [2023.10.3] - 2023-10-22 New Features
 
 - Support rpc topic for changing coil states (see examples/Unipi-Neuron example)

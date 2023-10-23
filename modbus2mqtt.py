@@ -80,14 +80,14 @@ class MqttBroker:
             subscriber.enqueue(data)
         return 0
 
-    def publish(self, topic: str, value: str):
+    def publish(self, topic: str, value: str, retain: bool = True):
         if self.is_connected is not True:
             return False
         t = topic
         if self.topic_prefix is not None:
             t = self.topic_prefix + '/' + t
         log.debug("Publishing topic %s value %s", t, value)
-        ret = self.client.publish(t, value)
+        ret = self.client.publish(t, value, retain=retain)
         if ret[0] != 0:
             log.error("Failed to deliver %s", t)
             return False
