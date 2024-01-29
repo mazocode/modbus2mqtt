@@ -8,6 +8,7 @@ import time
 import yaml
 import json
 import re
+import struct
 from typing import List
 from queue import Queue
 from threading import Thread, Lock
@@ -104,7 +105,7 @@ class MqttBroker:
     def rpc_unsubscribe(self, src):
         t = src.topic_prefix
         if self.topic_prefix is not None:
-            t = self.topic_prefix + '/' + t
+            t = self.topic_prefix + '/' + t 
         if self.subscribers.get(t.lower() + '/rpc', None) is not None:
             log.info(f"Unsubscribing from rpc topic {t}/rpc.")
             self.client.unsubscribe(t + '/rpc')
@@ -233,7 +234,7 @@ class CoilsRegister(Register):
 
 class HoldingRegister(Register):
 
-    def __init__(self, name: str, topic: str, register: int, length: int = 2,
+    def __init__(self, name: str, topic: str, register: int, typereg: str, length: int = 2,
                 mode: str = "r", substract: float = 0, divide: float = 1,
                 decimals: int = 0, signed: bool = False, unitid: int = None, **kvargs):
         super().__init__(name, topic, register, length, mode, unitid=unitid)
@@ -241,13 +242,18 @@ class HoldingRegister(Register):
         self.decimals = decimals
         self.substract = substract
         self.signed = signed
+        self.typereg = typereg
 
     def get_value(self, src):
         unitid = self.unitid
         if unitid is None:
             unitid = src.unitid
-
-        rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
+        if ( self.typereg == "holding" ):
+            rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
+        else:
+            rr = src.client.read_input_registers(self.start, 1, slave=unitid)
+            if (self.length>1):
+                   rr2 = src.client.read_input_registers(self.start+1, 1, slave=unitid)
         if not rr:
             raise ModbusException("Received empty modbus respone.")
         if rr.isError():
@@ -255,7 +261,16 @@ class HoldingRegister(Register):
         if isinstance(rr, ExceptionResponse):
             raise ModbusException(f"Received Modbus library exception ({rr}).")
 
-        val = rr.registers[0]
+        if (self.length>1):
+            v1 = rr.registers[0]
+            v2 = rr2.registers[0]
+            h1 = hex(v1).split('x')[-1]
+            h2 = hex(v2).split('x')[-1]
+            h=h2+h1
+            val=int(h,16)
+        else:
+            val = rr.registers[0]
+
         if self.signed and int(val) >= 32768:
             val = int(val) - 65535
         if self.decimals > 0:
