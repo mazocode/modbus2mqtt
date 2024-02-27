@@ -272,8 +272,11 @@ class HoldingRegister(Register):
             v1 = rr.registers[0]
             v2 = rr2.registers[0]
             h1 = hex(v1).split('x')[-1]
+            h1 = h1.zfill(4)
             h2 = hex(v2).split('x')[-1]
+            h2 = h2.zfill(4)
             h=h2+h1
+            # log.info(f"Got Value {h1} and {h2} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in little endian mode.")
             val=int(h,16)
         else:
             val = rr.registers[0]
