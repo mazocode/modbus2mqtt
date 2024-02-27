@@ -3,10 +3,10 @@ mqtt:
   port: 1883
   tls: false
   username: "jeedom"
-  password: "0Ta9jUaIdFO8R1kFXPyeKCpLdmJeIJWi3mjV3bEi6B7psBBPw2QySBLjHhKl4mJV"
+  password: "0Ta9jUaIdFO8R1V"
   topic_prefix: "pv"
 
-# Modbus register example for Deye SUN-xK-SG04LP3-EU
+# Modbus register example for Solax ESS X1 G4
 schema:
 - name: solax_x1_g4
   readings:
@@ -26,10 +26,19 @@ schema:
     substract: 0
     divide: 1
     typereg: "holding"
+  - name: "System Temperature"
+    topic: "system/temperature"
+    register: 8
+    length: 1
+    signed: 1
+    substract: 0
+    divide: 1
+    typereg: "Input"
   - name: "To grid energytotal"
     topic: "system/totals/grid_feedin"
     register: 72
     length: 2
+    lindean: 1
     substract: 0
     decimals: 1
     divide: 100
@@ -40,12 +49,14 @@ schema:
     length: 2
     substract: 0
     decimals: 1
+    lindean: 1
     divide: 100
     typereg: "Input"
   - name: "Yield total"
-    topic: "system/totals/yield"
+    topic: "system/totals/gridyield"
     register: 82
     length: 2
+    lindean: 1
     substract: 0
     decimals: 1
     divide: 10
@@ -54,6 +65,24 @@ schema:
     topic: "grid/today/yield"
     register: 80
     length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "OffGrid Yield total"
+    topic: "system/totals/epsyield"
+    register: 142
+    length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "OffGrid yield Today"
+    topic: "eps/today/yield"
+    register: 144
+    length: 1
     substract: 0
     decimals: 1
     divide: 10
@@ -62,6 +91,7 @@ schema:
     topic: "grid/today/sold"
     register: 152
     length: 2
+    lindean: 1
     substract: 0
     decimals: 1
     divide: 100
@@ -70,6 +100,7 @@ schema:
     topic: "grid/today/bought"
     register: 154
     length: 2
+    lindean: 1
     substract: 0
     decimals: 1
     divide: 100
@@ -99,7 +130,56 @@ schema:
     decimals: 1
     divide: 10
     typereg: "Input"
-  - name: "Load Power L1"
+  - name: "Grid L1 Current"
+    topic: "grid/now/l1/amp"
+    register: 70
+    length: 1
+    signed: 1
+    substract: 0
+    decimals: 1
+    divide: 230
+    typereg: "Input"
+  - name: "EPS L1 Power"
+    topic: "eps/now/l1/power"
+    register: 78
+    length: 1
+    substract: 0
+    decimals: 0
+    typereg: "Input"
+  - name: "EPS L1 Volt"
+    topic: "eps/now/l1/volt"
+    register: 76
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "EPS L1 Current"
+    topic: "eps/now/l1/amp"
+    register: 77
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "EPS L1 frequency"
+    topic: "eps/frequency"
+    register: 79
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 100
+    typereg: "Input"
+  - name: "Load L1 Current"
+    topic: "load/now/l1/amp"
+    register: 1
+    length: 1
+    substract: 0
+    signed: 1
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "Grid Power L1"
     topic: "load/now/l1/power"
     register: 2
     length: 1
@@ -107,14 +187,6 @@ schema:
     decimals: 0
     signed: 1
     divide: 1
-    typereg: "Input"
-  - name: "Load Voltage L1"
-    topic: "load/now/l1/volt"
-    register: 0
-    length: 1
-    substract: 0
-    decimals: 1
-    divide: 10
     typereg: "Input"
   - name: "PV Production Today"
     topic: "pv/today"

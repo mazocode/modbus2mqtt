@@ -6,6 +6,10 @@ This is a gateway between Modbus and MQTT. It was originally developed to read r
 can read from one or more Modbus TCP gateways (e.g. the Waveshare RS485 to Ethernet) simultaneously. The state of the coils can be published as a json message and their 
 state can also be changed with a json message sent to the rpc topic.
 
+## Changes from the upstream version
+1) Read input register
+2) Basic support of big and little endian registers
+
 ## Configuration
 
 Create a configuration file (see examples/). Here is the basic syntax:
