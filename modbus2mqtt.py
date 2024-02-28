@@ -264,18 +264,18 @@ class HoldingRegister(Register):
 
         if ((self.littleendian)):
             # Read multiple bytes in little endian mode
-            h=""
+            h = ""
             for i in range(0, self.length):
                 h = hex(rr.registers[i]).split('x')[-1].zfill(4) + h
             log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in little endian mode.")
-            val=int(h, 16)
+            val = int(h, 16)
         else:
             # Read multiple bytes in big endian mode
-            h=""
+            h = ""
             for i in range(0, self.length):
                 h = h + hex(rr.registers[i]).split('x')[-1].zfill(4)
             log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in big endian mode.")
-            val=int(h, 16)
+            val = int(h, 16)
 
         if self.signed and int(val) >= 32768:
             val = int(val) - 65535
