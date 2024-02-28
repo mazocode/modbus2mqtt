@@ -1,0 +1,275 @@
+mqtt:
+  host: "192.168.0.147"
+  port: 1883
+  tls: false
+  username: "jeedom"
+  password: "0Ta9jUaIdFO8R1V"
+  topic_prefix: "pv"
+
+# Modbus register example for Solax ESS X1 G4
+schema:
+- name: solax_x1_g4
+  readings:
+  - name: "System State"
+    topic: "system/state"
+    register: 9
+    length: 1
+    signed: 0
+    substract: 0
+    divide: 1
+    typereg: "Input"
+  - name: "System Use Mode"
+    topic: "system/usemode"
+    register: 139
+    length: 1
+    signed: 0
+    substract: 0
+    divide: 1
+    typereg: "holding"
+  - name: "System Temperature"
+    topic: "system/temperature"
+    register: 8
+    length: 1
+    signed: 1
+    substract: 0
+    divide: 1
+    typereg: "Input"
+  - name: "To grid energytotal"
+    topic: "system/totals/grid_feedin"
+    register: 72
+    length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 100
+    typereg: "Input"
+  - name: "From grid energy total"
+    topic: "system/totals/grid_energy"
+    register: 74
+    length: 2
+    substract: 0
+    decimals: 1
+    lindean: 1
+    divide: 100
+    typereg: "Input"
+  - name: "Yield total"
+    topic: "system/totals/gridyield"
+    register: 82
+    length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "Grid yield Today"
+    topic: "grid/today/yield"
+    register: 80
+    length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "OffGrid Yield total"
+    topic: "system/totals/epsyield"
+    register: 142
+    length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "OffGrid yield Today"
+    topic: "eps/today/yield"
+    register: 144
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "Grid Sold Today"
+    topic: "grid/today/sold"
+    register: 152
+    length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 100
+    typereg: "Input"
+  - name: "Grid Bought Today"
+    topic: "grid/today/bought"
+    register: 154
+    length: 2
+    lindean: 1
+    substract: 0
+    decimals: 1
+    divide: 100
+    typereg: "Input"
+  - name: "Grid Frequency"
+    topic: "grid/frequency"
+    register: 7
+    length: 1
+    substract: 0
+    decimals: 0
+    divide: 100
+    typereg: "Input"
+  - name: "Grid L1 Power"
+    topic: "grid/now/l1/power"
+    register: 70
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+    typereg: "Input"
+  - name: "Grid L1 Volt"
+    topic: "grid/now/l1/volt"
+    register: 0
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "Grid L1 Current"
+    topic: "grid/now/l1/amp"
+    register: 70
+    length: 1
+    signed: 1
+    substract: 0
+    decimals: 1
+    divide: 230
+    typereg: "Input"
+  - name: "EPS L1 Power"
+    topic: "eps/now/l1/power"
+    register: 78
+    length: 1
+    substract: 0
+    decimals: 0
+    typereg: "Input"
+  - name: "EPS L1 Volt"
+    topic: "eps/now/l1/volt"
+    register: 76
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "EPS L1 Current"
+    topic: "eps/now/l1/amp"
+    register: 77
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "EPS L1 frequency"
+    topic: "eps/frequency"
+    register: 79
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 100
+    typereg: "Input"
+  - name: "Load L1 Current"
+    topic: "load/now/l1/amp"
+    register: 1
+    length: 1
+    substract: 0
+    signed: 1
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "Grid Power L1"
+    topic: "load/now/l1/power"
+    register: 2
+    length: 1
+    substract: 0
+    decimals: 0
+    signed: 1
+    divide: 1
+    typereg: "Input"
+  - name: "PV Production Today"
+    topic: "pv/today"
+    register: 150
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "PV String 1 Power"
+    topic: "pv/string/1/power"
+    register: 10
+    length: 1
+    substract: 0
+    divide: 1
+    typereg: "Input"
+  - name: "PV String 2 Power"
+    topic: "pv/string/2/power"
+    register: 11
+    length: 1
+    substract: 0
+    divide: 1
+    typereg: "Input"
+  - name: "Battery SOC"
+    topic: "battery/soc"
+    register: 28
+    length: 1
+    substract: 0
+    divide: 1
+    typereg: "Input"
+  - name: "Battery Charged Today"
+    topic: "battery/today/charged"
+    register: 35
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 10
+    typereg: "Input"
+  - name: "Battery Discharged Today"
+    topic: "battery/today/discharged"
+    register: 32
+    length: 1
+    substract: 0
+    divide: 10
+    typereg: "Input"
+  - name: "Battery Temperature"
+    topic: "battery/temperature"
+    register: 24
+    length: 1
+    substract: 0
+    decimals: 1
+    divide: 1
+    typereg: "Input"
+  - name: "Battery Voltage"
+    topic: "battery/volt"
+    register: 20
+    length: 1
+    substract: 0
+    decimals: 2
+    divide: 10
+    typereg: "Input"
+  - name: "Battery Output Power"
+    topic: "battery/power"
+    register: 22
+    length: 1
+    signed: 1
+    substract: 0
+    decimals: 0
+    divide: 1
+    typereg: "Input"
+  - name: "Battery Output Current"
+    topic: "battery/current"
+    register: 21
+    length: 1
+    signed: 1
+    substract: 0
+    decimals: 2
+    divide: 10
+    typereg: "Input"
+
+sources:
+- name: "Solax X1"
+  host: "192.168.0.87"
+  port: 502
+  schema: solax_x1_g4
+  topic_prefix: "x1"

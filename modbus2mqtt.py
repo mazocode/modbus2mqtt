@@ -61,7 +61,7 @@ class MqttBroker:
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
-            log.info("Connected dto broker %s", self.host)
+            log.info("Connected to broker %s", self.host)
             self.is_connected = True
         else:
             log.error("Connection to broker %s failed.", self.host)
@@ -232,8 +232,11 @@ class CoilsRegister(Register):
 
 
 class HoldingRegister(Register):
+    # Keep the function name but can read holding and input registers.
+    #    pass the parameter "typereg" with the value "holding" or "input" to define the type of register to read.
+    #    pass the parameter "littleendian" with the value False or true (little endian) to define the endianness of the register to read. (Solax use little endian)
 
-    def __init__(self, name: str, topic: str, register: int, length: int = 2,
+    def __init__(self, name: str, topic: str, register: int, typereg: str = "holding", littleendian: bool = False, length: int = 1,
                 mode: str = "r", substract: float = 0, divide: float = 1,
                 decimals: int = 0, signed: bool = False, unitid: int = None, **kvargs):
         super().__init__(name, topic, register, length, mode, unitid=unitid)
@@ -241,13 +244,17 @@ class HoldingRegister(Register):
         self.decimals = decimals
         self.substract = substract
         self.signed = signed
+        self.typereg = typereg
+        self.littleendian = littleendian
 
     def get_value(self, src):
         unitid = self.unitid
         if unitid is None:
             unitid = src.unitid
-
-        rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
+        if (self.typereg == "holding"):
+            rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
+        else:
+            rr = src.client.read_input_registers(self.start, self.length, slave=unitid)
         if not rr:
             raise ModbusException("Received empty modbus respone.")
         if rr.isError():
@@ -255,7 +262,21 @@ class HoldingRegister(Register):
         if isinstance(rr, ExceptionResponse):
             raise ModbusException(f"Received Modbus library exception ({rr}).")
 
-        val = rr.registers[0]
+        if ((self.littleendian)):
+            # Read multiple bytes in little endian mode
+            h = ""
+            for i in range(0, self.length):
+                h = hex(rr.registers[i]).split('x')[-1].zfill(4) + h
+            log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in little endian mode.")
+            val = int(h, 16)
+        else:
+            # Read multiple bytes in big endian mode
+            h = ""
+            for i in range(0, self.length):
+                h = h + hex(rr.registers[i]).split('x')[-1].zfill(4)
+            log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in big endian mode.")
+            val = int(h, 16)
+
         if self.signed and int(val) >= 32768:
             val = int(val) - 65535
         if self.decimals > 0:
