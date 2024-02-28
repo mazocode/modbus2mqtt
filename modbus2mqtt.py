@@ -235,9 +235,9 @@ class CoilsRegister(Register):
 class HoldingRegister(Register):
 # Keep the function name but can read holding and input registers.
 #    pass the parameter "typereg" with the value "holding" or "input" to define the type of register to read.
-#    pass the parameter "lindean" with the value 0 or 1 (little indean) to define the indeaness of the register to read. (Solax use little endian)
+#    pass the parameter "littleendian" with the value False or true (little endian) to define the endianness of the register to read. (Solax use little endian)
 
-    def __init__(self, name: str, topic: str, register: int, typereg: str, lindean: int = 0, length: int = 2,
+    def __init__(self, name: str, topic: str, register: int, typereg: str = "holding", littleendian: bool = False, length: int = 1,
                 mode: str = "r", substract: float = 0, divide: float = 1,
                 decimals: int = 0, signed: bool = False, unitid: int = None, **kvargs):
         super().__init__(name, topic, register, length, mode, unitid=unitid)
@@ -246,7 +246,7 @@ class HoldingRegister(Register):
         self.substract = substract
         self.signed = signed
         self.typereg = typereg
-        self.lindean = lindean
+        self.littleendian = littleendian
 
     def get_value(self, src):
         unitid = self.unitid
@@ -255,12 +255,7 @@ class HoldingRegister(Register):
         if ( self.typereg == "holding" ):
             rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
         else:
-            if (self.lindean == 0):
-               rr = src.client.read_input_registers(self.start, self.length, slave=unitid) 
-            else:
-               rr = src.client.read_input_registers(self.start, 1, slave=unitid)
-               if (self.length>1):
-                   rr2 = src.client.read_input_registers(self.start+1, 1, slave=unitid)
+            rr = src.client.read_input_registers(self.start, self.length, slave=unitid)
         if not rr:
             raise ModbusException("Received empty modbus respone.")
         if rr.isError():
@@ -268,19 +263,21 @@ class HoldingRegister(Register):
         if isinstance(rr, ExceptionResponse):
             raise ModbusException(f"Received Modbus library exception ({rr}).")
 
-        if ((self.length>1) and (self.lindean == 1)):
-            v1 = rr.registers[0]
-            v2 = rr2.registers[0]
-            h1 = hex(v1).split('x')[-1]
-            h1 = h1.zfill(4)
-            h2 = hex(v2).split('x')[-1]
-            h2 = h2.zfill(4)
-            h=h2+h1
-            # log.info(f"Got Value {h1} and {h2} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in little endian mode.")
+        if ((self.littleendian)):
+            # Read multiple bytes in little endian mode
+            h=""
+            for i in range(0,self.length):
+                h = hex(rr.registers[i]).split('x')[-1].zfill(4) + h
+            log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in little endian mode.")
             val=int(h,16)
         else:
-            val = rr.registers[0]
-
+            # Read multiple bytes in big endian mode
+            h=""
+            for i in range(0,self.length):
+                h = h + hex(rr.registers[i]).split('x')[-1].zfill(4)
+            log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in big endian mode.")
+            val=int(h,16)
+          
         if self.signed and int(val) >= 32768:
             val = int(val) - 65535
         if self.decimals > 0:

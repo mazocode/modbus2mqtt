@@ -9,6 +9,8 @@ state can also be changed with a json message sent to the rpc topic.
 ## Changes from the upstream version
 1) Read input register
 2) Basic support of big and little endian registers
+3) Read multi-byte value in big and little endian order
+4) Fix the default value of length to 1 ( as in the readme)
 
 ## Configuration
 
@@ -46,6 +48,8 @@ schema:
       substract: 0          # <--- (optional) Value to substract before publishing (default is 0)
       signed: 1             # <--- (optional) True/false for signed/unsigned value (default is 0)
       divide: 1             # <--- (optional) Value to divide by before publishing (default is 1)
+      typereg: holding      # <--- (optional) Read holding or input register (default is holding)
+      littleendian: 0       # <--- (optional) Byte order (default is 0)
 
    # Coils
  
@@ -180,11 +184,11 @@ sources:
 
 Result:
 
-![MQQT Explorer Screenshot](examples/Deye-SG04LP3-EU/deye-modbus2mqtt-example.jpg)
+![MQTT Explorer Screenshot](examples/Deye-SG04LP3-EU/deye-modbus2mqtt-example.jpg)
 
 Home Assistant device sensors:
 
-![MQQT Explorer Screenshot](examples/Deye-SG04LP3-EU/ha-mqtt-deye-data.jpg)
+![MQTT Explorer Screenshot](examples/Deye-SG04LP3-EU/ha-mqtt-deye-data.jpg)
 
 
 ## Known Issues
