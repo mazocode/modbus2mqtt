@@ -479,6 +479,7 @@ def main(argv):
                 int(source.get("port", 502)),
                 schema[source["schema"]],
                 int(source.get("unitid", 1)),
+                pollms=int(source.get("pollms", 1000)),
                 topic_prefix=source.get("topic_prefix", None),
                 enabled=bool(source.get("enabled", True))
             )

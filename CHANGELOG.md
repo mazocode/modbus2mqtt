@@ -1,4 +1,19 @@
 
+## [2024.02.1] - 2024-02-28 Feature Release
+
+- Read input register
+
+- Basic support of big and little endian registers
+
+- Read multi-byte value in big and little endian order
+
+- Fix the default value of length to 1 ( as in the readme)
+
+
+## [2023.10.6] - 2023-10-22 Bugfix Release
+
+- Fixed pollms was ignored
+
 ## [2023.10.5] - 2023-10-22 Bugfix Release
 
 - Fixed missing message retain
