@@ -8,7 +8,6 @@ import time
 import yaml
 import json
 import re
-import struct
 from typing import List
 from queue import Queue
 from threading import Thread, Lock
@@ -233,9 +232,9 @@ class CoilsRegister(Register):
 
 
 class HoldingRegister(Register):
-# Keep the function name but can read holding and input registers.
-#    pass the parameter "typereg" with the value "holding" or "input" to define the type of register to read.
-#    pass the parameter "littleendian" with the value False or true (little endian) to define the endianness of the register to read. (Solax use little endian)
+    # Keep the function name but can read holding and input registers.
+    #    pass the parameter "typereg" with the value "holding" or "input" to define the type of register to read.
+    #    pass the parameter "littleendian" with the value False or true (little endian) to define the endianness of the register to read. (Solax use little endian)
 
     def __init__(self, name: str, topic: str, register: int, typereg: str = "holding", littleendian: bool = False, length: int = 1,
                 mode: str = "r", substract: float = 0, divide: float = 1,
@@ -252,7 +251,7 @@ class HoldingRegister(Register):
         unitid = self.unitid
         if unitid is None:
             unitid = src.unitid
-        if ( self.typereg == "holding" ):
+        if (self.typereg == "holding"):
             rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
         else:
             rr = src.client.read_input_registers(self.start, self.length, slave=unitid)
@@ -266,18 +265,18 @@ class HoldingRegister(Register):
         if ((self.littleendian)):
             # Read multiple bytes in little endian mode
             h=""
-            for i in range(0,self.length):
+            for i in range(0, self.length):
                 h = hex(rr.registers[i]).split('x')[-1].zfill(4) + h
             log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in little endian mode.")
-            val=int(h,16)
+            val=int(h, 16)
         else:
             # Read multiple bytes in big endian mode
             h=""
-            for i in range(0,self.length):
+            for i in range(0, self.length):
                 h = h + hex(rr.registers[i]).split('x')[-1].zfill(4)
             log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in big endian mode.")
-            val=int(h,16)
-          
+            val=int(h, 16)
+
         if self.signed and int(val) >= 32768:
             val = int(val) - 65535
         if self.decimals > 0:
