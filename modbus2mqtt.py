@@ -16,7 +16,7 @@ from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.payload import BinaryPayloadBuilder
+#from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.transaction import ModbusSocketFramer
 from paho.mqtt import client as mqtt_client
 
@@ -238,7 +238,7 @@ class HoldingRegister(Register):
     #    pass the parameter "littleendian" with the value False or true (little endian) to define the endianness of the register to read. (Solax use little endian)
 
     def __init__(self, name: str, topic: str, register: int, typereg: str = "holding", littleendian: bool = False, length: int = 1,
-                mode: str = "r", substract: float = 0, divide: float = 1, 
+                mode: str = "r", substract: float = 0, divide: float = 1,
                 format: str = "integer", byteorder: str = "big", wordorder: str = "big",
                 decimals: int = 0, signed: bool = False, unitid: int = None, **kvargs):
         super().__init__(name, topic, register, length, mode, unitid=unitid)
