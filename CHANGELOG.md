@@ -1,3 +1,6 @@
+## [2024.03.3] - 2024-03-29 Feature Release
+
+- Fix pyproject version
 
 ## [2024.03.2] - 2024-03-29 Feature Release
 
