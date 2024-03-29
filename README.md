@@ -44,6 +44,8 @@ schema:
       signed: 1             # <--- (optional) True/false for signed/unsigned value (default is 0)
       divide: 1             # <--- (optional) Value to divide by before publishing (default is 1)
       decimals: 0           # <--- (optional) Number of decimal places in output value (default is 0)
+      min:                  # <--- (optional) Expected minimum value (otherwise read is ignored, default is None)
+      max:                  # <--- (optional) Expected maximum value (otherwise read is ignored, default is None)
       typereg: holding      # <--- (optional) Read holding or input register (default is holding)
       format: integer       # <--- (optional) Read integer or float value (default is integer)
       byteorder: big        # <--- (optional) Specify the byteorder as little or big (default is big)
@@ -79,6 +81,8 @@ sources:
     port: 502              # <--- (optional) Port your gateway is listening on (default is 502)
     unitid: 1              # <--- (optional) Modbus device id to read from (default is 1)
     topic_prefix: "abc"    # <--- (optional) Appened after <mqtt.topic_prefix>/
+    control_topic: "abc"   # <--- (optional) Topic to publish online state and listen to rpc messages on
+                                   Appened after <mqtt.topic_prefix>/. Dfault is name
     pollms: 1000           # <--- (optional) Modbus polling interval in ms (default is 1000)
 ```
 

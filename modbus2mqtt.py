@@ -94,7 +94,7 @@ class MqttBroker:
         return True
 
     def rpc_subscribe(self, src):
-        t = src.topic_prefix
+        t = src.control_topic
         if self.topic_prefix is not None:
             t = self.topic_prefix + '/' + t
         self.subscribers[t.lower() + '/rpc'] = src
@@ -102,7 +102,7 @@ class MqttBroker:
         self.client.subscribe(t + '/rpc', 0)
 
     def rpc_unsubscribe(self, src):
-        t = src.topic_prefix
+        t = src.control_topic
         if self.topic_prefix is not None:
             t = self.topic_prefix + '/' + t
         if self.subscribers.get(t.lower() + '/rpc', None) is not None:
@@ -237,13 +237,15 @@ class HoldingRegister(Register):
     #    pass the parameter "littleendian" with the value False or true (little endian) to define the endianness of the register to read. (Solax use little endian)
 
     def __init__(self, name: str, topic: str, register: int, typereg: str = "holding", littleendian: bool = False, length: int = 1,
-                mode: str = "r", substract: float = 0, divide: float = 1,
+                mode: str = "r", substract: float = 0, divide: float = 1, min: float = None, max: float = None,
                 format: str = "integer", byteorder: str = "big", wordorder: str = "big",
                 decimals: int = 0, signed: bool = False, unitid: int = None, **kvargs):
         super().__init__(name, topic, register, length, mode, unitid=unitid)
         self.divide = divide
         self.decimals = decimals
         self.substract = substract
+        self.minvalue = min
+        self.maxvalue = max
         self.signed = signed
         self.typereg = typereg
         self.format = "float" if format.lower() == "float" else "integer"
@@ -292,6 +294,9 @@ class HoldingRegister(Register):
                 val = float(fmt.format((float(val) - float(self.substract)) / float(self.divide)))
             else:
                 val = int(((float(val) - float(self.substract)) / float(self.divide)))
+
+            if (self.maxvalue and val > self.maxvalue) or (self.minvalue and val < self.minvalue):
+                return None
             return val
 
         if self.signed and int(val) >= 32768:
@@ -302,6 +307,9 @@ class HoldingRegister(Register):
             val = float(fmt.format((int(val) - float(self.substract)) / float(self.divide)))
         else:
             val = int(((int(val) - float(self.substract)) / float(self.divide)))
+
+        if (self.maxvalue and val > self.maxvalue) or (self.minvalue and val < self.minvalue):
+            return None
 
         return val
 
@@ -317,6 +325,7 @@ class ModbusSource:
 
     def __init__(self, name: str, broker: MqttBroker, host: str, port: int,
                 schema: Schema, unitid: int = 1, topic_prefix: str = None,
+                control_topic: str = None,
                 pollms: int = 100, enabled: bool = True):
         self.mqtt = broker
         self.host = host
@@ -341,10 +350,13 @@ class ModbusSource:
         self.pollms = pollms
         self.is_online = False
         self.was_online = None
-        if topic_prefix:
-            self.topic_prefix = topic_prefix
+        self.topic_prefix = topic_prefix
+        if control_topic:
+            self.control_topic = control_topic
+        elif self.topic_prefix:
+            self.control_topic = self.topic_prefix
         else:
-            self.topic_prefix = re.sub(r'/\s\s+/g', '_', self.name.strip().lower())
+            self.control_topic = re.sub(r'/\s\s+/g', '_', self.name.strip().lower())
 
         self.mqtt.rpc_subscribe(self)
 
@@ -370,6 +382,8 @@ class ModbusSource:
 
                         try:
                             val = r.get_value(self)
+                            if val is None:
+                                continue
                         except ModbusException as e:
                             log.error(f"Received exception({e}) while trying to read from modbus slave.")
                             self.is_online = False
@@ -415,7 +429,7 @@ class ModbusSource:
         finally:
             try:
                 self.client.close()
-                topic = self.topic_prefix + '/online'
+                topic = self.control_topic + '/online'
                 if self.mqtt.is_connected:
                     self.mqtt.publish(topic, str(False).lower())
                 self.mqtt.rpc_unsubscribe(self)
@@ -427,7 +441,7 @@ class ModbusSource:
             return
 
         if self.was_online is None or self.was_online != self.is_online:
-            topic = self.topic_prefix + '/online'
+            topic = self.control_topic + '/online'
             if self.mqtt.publish(topic, str(True).lower()):
                 self.was_online = self.is_online
 
@@ -436,12 +450,17 @@ class ModbusSource:
                 rid = id(r)
                 if not self.track.get(rid, False):
                     continue
-                topic = self.topic_prefix + '/' + r.topic
+
+                topic = r.topic
+                if self.topic_prefix:
+                    topic = self.topic_prefix + '/' + topic
+
                 val = None
                 if isinstance(self.cache[rid], dict):
                     val = json.dumps(self.cache[rid])
                 else:
                     val = str(self.cache[rid])
+
                 if self.mqtt.publish(topic, val):
                     self.track[rid] = False
                 else:
@@ -500,6 +519,7 @@ def main(argv):
                 int(source.get("unitid", 1)),
                 pollms=int(source.get("pollms", 1000)),
                 topic_prefix=source.get("topic_prefix", None),
+                control_topic=source.get("control_topic", None),
                 enabled=bool(source.get("enabled", True))
             )
         )

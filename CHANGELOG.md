@@ -1,3 +1,15 @@
+
+## [2024.03.2] - 2024-03-29 Feature Release
+
+- Ignore values out of range using min and max configuration option
+
+- Specify independent control_topic for RPC commands and online state
+
+- Use soruce name if neither control_topic nor topic_prefix as specified
+
+- Fix wrong topic path if source topic_prefix was not specified
+
+
 ## [2024.03.1] - 2024-03-28 Feature Release
 
 - Read float values from input registers
