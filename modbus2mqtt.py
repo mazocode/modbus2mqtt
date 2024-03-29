@@ -16,7 +16,6 @@ from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
-#from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.transaction import ModbusSocketFramer
 from paho.mqtt import client as mqtt_client
 
