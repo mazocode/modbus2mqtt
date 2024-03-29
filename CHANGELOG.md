@@ -1,3 +1,10 @@
+## [2024.03.1] - 2024-03-28 Feature Release
+
+- Read float values from input registers
+
+- Specify byte- and wordorder
+
+- Eastron example
 
 ## [2024.02.1] - 2024-02-28 Feature Release
 

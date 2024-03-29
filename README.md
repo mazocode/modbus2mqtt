@@ -43,8 +43,12 @@ schema:
       substract: 0          # <--- (optional) Value to substract before publishing (default is 0)
       signed: 1             # <--- (optional) True/false for signed/unsigned value (default is 0)
       divide: 1             # <--- (optional) Value to divide by before publishing (default is 1)
+      decimals: 0           # <--- (optional) Number of decimal places in output value (default is 0)
       typereg: holding      # <--- (optional) Read holding or input register (default is holding)
-      littleendian: 0       # <--- (optional) Byte order (default is 0)
+      format: integer       # <--- (optional) Read integer or float value (default is integer)
+      byteorder: big        # <--- (optional) Specify the byteorder as little or big (default is big)
+      wordorder: big        # <--- (optional) Wordorder (if length > 2) as little or big (default is big)
+      littleendian: 0       # <--- (optional) Shortcut for byteorder and wordorder as little if true
 
    # Coils
  

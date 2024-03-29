@@ -14,8 +14,9 @@ from threading import Thread, Lock
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
-# from pymodbus.constants import Endian
-# from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.constants import Endian
+from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.transaction import ModbusSocketFramer
 from paho.mqtt import client as mqtt_client
 
@@ -237,7 +238,8 @@ class HoldingRegister(Register):
     #    pass the parameter "littleendian" with the value False or true (little endian) to define the endianness of the register to read. (Solax use little endian)
 
     def __init__(self, name: str, topic: str, register: int, typereg: str = "holding", littleendian: bool = False, length: int = 1,
-                mode: str = "r", substract: float = 0, divide: float = 1,
+                mode: str = "r", substract: float = 0, divide: float = 1, 
+                format: str = "integer", byteorder: str = "big", wordorder: str = "big",
                 decimals: int = 0, signed: bool = False, unitid: int = None, **kvargs):
         super().__init__(name, topic, register, length, mode, unitid=unitid)
         self.divide = divide
@@ -245,13 +247,16 @@ class HoldingRegister(Register):
         self.substract = substract
         self.signed = signed
         self.typereg = typereg
-        self.littleendian = littleendian
+        self.format = "float" if format.lower() == "float" else "integer"
+        self.byteorder = Endian.LITTLE if (byteorder.lower() == "little" or littleendian) else Endian.BIG
+        self.wordorder = Endian.LITTLE if (wordorder.lower() == "little" or littleendian) else Endian.BIG
+        self.littleendian = True if (littleendian or (byteorder.lower() == "little" and wordorder.lower() == "little")) else False
 
     def get_value(self, src):
         unitid = self.unitid
         if unitid is None:
             unitid = src.unitid
-        if (self.typereg == "holding"):
+        if (self.typereg.lower() == "holding"):
             rr = src.client.read_holding_registers(self.start, self.length, slave=unitid)
         else:
             rr = src.client.read_input_registers(self.start, self.length, slave=unitid)
@@ -262,13 +267,18 @@ class HoldingRegister(Register):
         if isinstance(rr, ExceptionResponse):
             raise ModbusException(f"Received Modbus library exception ({rr}).")
 
-        if ((self.littleendian)):
+        if (self.format == "float"):
+            decoder = BinaryPayloadDecoder.fromRegisters(rr.registers, self.byteorder, wordorder=self.wordorder)
+            val = decoder.decode_32bit_float()
+
+        elif (self.littleendian):
             # Read multiple bytes in little endian mode
             h = ""
             for i in range(0, self.length):
                 h = hex(rr.registers[i]).split('x')[-1].zfill(4) + h
             log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in little endian mode.")
             val = int(h, 16)
+
         else:
             # Read multiple bytes in big endian mode
             h = ""
@@ -277,13 +287,23 @@ class HoldingRegister(Register):
             log.debug(f"Got Value {h} from {self.typereg} register {self.start} with length {self.length} from unit {unitid} in big endian mode.")
             val = int(h, 16)
 
+        if self.format == "float":
+            if self.decimals > 0:
+                fmt = '{0:.' + str(self.decimals) + 'f}'
+                val = float(fmt.format((float(val) - float(self.substract)) / float(self.divide)))
+            else:
+                val = int(((float(val) - float(self.substract)) / float(self.divide)))
+            return val
+
         if self.signed and int(val) >= 32768:
             val = int(val) - 65535
+
         if self.decimals > 0:
             fmt = '{0:.' + str(self.decimals) + 'f}'
             val = float(fmt.format((int(val) - float(self.substract)) / float(self.divide)))
         else:
             val = int(((int(val) - float(self.substract)) / float(self.divide)))
+
         return val
 
 

@@ -1,0 +1,36 @@
+mqtt:
+  host: "mqtt.broker"
+  port: 1883
+  tls: false
+  username: "username"
+  password: "password"
+
+schema:
+- name: sensors
+  readings:
+  - name: "Temperature (SHT20)"
+    topic: "temperature"
+    unitid: 12
+    register: 1
+    length: 1
+    signed: 1
+    divide: 10.0
+    decimals: 1
+    typereg: input
+  - name: "Humidity (SHT20)"
+    topic: "humidity"
+    unitid: 12
+    register: 2
+    length: 1
+    signed: 1
+    divide: 10.0
+    decimals: 1
+    typereg: input
+
+sources:
+- name: "plc1"
+  host: "10.128.25.199"
+  port: 502
+  pollms: 1000
+  schema: sensors
+  topic_prefix: "room"

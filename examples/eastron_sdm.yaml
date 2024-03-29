@@ -1,0 +1,65 @@
+mqtt:
+  host: "mqtt.broker"
+  port: 1883
+  tls: false
+  username: "username"
+  password: "password"
+
+schema:
+- name: eastron
+  readings:
+  - name: "Voltage"
+    topic: "meter/voltage"
+    unitid: 14
+    register: 0
+    length: 2
+    signed: 0
+    divide: 1
+    decimals: 2
+    format: float
+    byteorder: big
+    wordorder: big
+    typereg: input
+  - name: "Power"
+    topic: "meter/power"
+    unitid: 14
+    register: 12
+    length: 2
+    signed: 0
+    divide: 1
+    decimals: 2
+    format: float
+    byteorder: big
+    wordorder: big
+    typereg: input
+  - name: "Current"
+    topic: "meter/current"
+    unitid: 14
+    register: 6
+    length: 2
+    signed: 1
+    divide: 1
+    decimals: 2
+    format: float
+    byteorder: big
+    wordorder: big
+    typereg: input
+  - name: "Frequency"
+    topic: "meter/frequency"
+    unitid: 14
+    register: 70
+    length: 2
+    signed: 1
+    divide: 1
+    decimals: 2
+    format: float
+    byteorder: big
+    wordorder: big
+    typereg: input
+sources:
+- name: "plc1"
+  host: "10.128.25.199"
+  port: 502
+  pollms: 1000
+  schema: eastron
+  topic_prefix: "room"
