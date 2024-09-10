@@ -1,3 +1,7 @@
+## [2024.09.1] - 2024-09-10 Feature Release
+
+- Write to register support (using params: { value: int } on rpc topic).
+
 ## [2024.03.3] - 2024-03-29 Feature Release
 
 - Fix pyproject version

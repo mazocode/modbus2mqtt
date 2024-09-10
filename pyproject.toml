@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "modbus2mqtt"
-version = "2024.03.3"
+version = "2024.09.1"
 description = "Gateway between Modbus TCP devices and MQTT."
 authors = ["Marcus Zoller <mazocode@users.noreply.github.com>"]
 license = "MIT"

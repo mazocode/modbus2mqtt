@@ -295,7 +295,7 @@ class HoldingRegister(Register):
             else:
                 val = int(((float(val) - float(self.substract)) / float(self.divide)))
 
-            if (self.maxvalue and val > self.maxvalue) or (self.minvalue and val < self.minvalue):
+            if (self.maxvalue is not None and float(val) > float(self.maxvalue)) or (self.minvalue is not None and float(val) < float(self.minvalue)):
                 return None
             return val
 
@@ -308,10 +308,30 @@ class HoldingRegister(Register):
         else:
             val = int(((int(val) - float(self.substract)) / float(self.divide)))
 
-        if (self.maxvalue and val > self.maxvalue) or (self.minvalue and val < self.minvalue):
+        if (self.maxvalue is not None and float(val) > float(self.maxvalue)) or (self.minvalue is not None and float(val) < float(self.minvalue)):
             return None
 
         return val
+
+    def set_value(self, src, params):
+        unitid = self.unitid
+        if unitid is None:
+            unitid = src.unitid
+
+        value = params.get("value", None)
+        if value is None:
+            # Can't set unknown state
+            return False
+
+        addr = self.start
+        log.debug(f"Writing register at address {addr} with value {value}.")
+        rr = src.client.write_register(addr, value, slave=unitid)
+        if not rr:
+            raise ModbusException("Received empty modbus respone.")
+        if rr.isError():
+            raise ModbusException(f"Received Modbus library error({rr}).")
+        if isinstance(rr, ExceptionResponse):
+            raise ModbusException(f"Received Modbus library exception ({rr}).")
 
 
 class Schema:
