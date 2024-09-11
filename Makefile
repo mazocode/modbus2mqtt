@@ -3,7 +3,8 @@ VERSION = $(shell poetry version -s)
 
 GITHUBUSER = mazocode
 
-ARCHS = linux/amd64 linux/arm linux/arm/v6 linux/arm/v7 linux/arm64/v8
+#ARCHS = linux/amd64 linux/arm linux/arm/v6 linux/arm/v7 linux/arm64/v8
+ARCHS = linux/amd64 linux/arm/v7 linux/arm64/v8
 
 null =
 space = $(null) $(null)

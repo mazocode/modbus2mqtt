@@ -15,7 +15,7 @@ from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
 from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.payload import BinaryPayloadDecoder, BinaryPayloadBuilder
 from pymodbus.transaction import ModbusSocketFramer
 from paho.mqtt import client as mqtt_client
 
@@ -221,7 +221,7 @@ class CoilsRegister(Register):
             value = False
 
         addr = self.start + int(coil["bit"]) - 1
-        log.debug(f"Writing coil at address {addr} with value {value}.")
+        log.info(f"Writing coil at address {addr} with value {value}.")
         rr = src.client.write_coil(addr, value, slave=unitid)
         if not rr:
             raise ModbusException("Received empty modbus respone.")
@@ -323,9 +323,23 @@ class HoldingRegister(Register):
             # Can't set unknown state
             return False
 
+        wordcount = 1
+        bo = Endian.BIG
+        if self.littleendian:
+            bo = Endian.LITTLE
+
+        builder = BinaryPayloadBuilder(byteorder=bo, wordorder=bo)
+        payload = None
+        if self.format == "float":
+            builder.add_32bit_float(float(value))
+            payload = builder.to_registers()
+            wordcount = 2
+        else:
+            payload = int(value)
+
         addr = self.start
-        log.debug(f"Writing register at address {addr} with value {value}.")
-        rr = src.client.write_register(addr, value, slave=unitid)
+        log.info(f"Writing register at address {addr} with value {value}.")
+        rr = src.client.write_registers(addr, payload, slave=unitid)
         if not rr:
             raise ModbusException("Received empty modbus respone.")
         if rr.isError():
