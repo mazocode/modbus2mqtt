@@ -323,7 +323,6 @@ class HoldingRegister(Register):
             # Can't set unknown state
             return False
 
-        wordcount = 1
         bo = Endian.BIG
         if self.littleendian:
             bo = Endian.LITTLE
@@ -333,7 +332,6 @@ class HoldingRegister(Register):
         if self.format == "float":
             builder.add_32bit_float(float(value))
             payload = builder.to_registers()
-            wordcount = 2
         else:
             payload = int(value)
 
